@@ -3,100 +3,76 @@
 ## Quick Start
 
 1. **Install dependencies:**
-
-```bash
-pnpm install
-```
+   ```bash
+   pnpm install
+   ```
 
 2. **Set up environment variables:**
 
-### Frontend (`apps/web/.env.local`):
-```env
-VITE_CONVEX_URL=https://your-deployment.convex.cloud
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
-```
+   Create `.env.local`:
+   ```env
+   VITE_CONVEX_URL=https://your-deployment.convex.cloud
+   VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+   ```
 
-### Backend (`apps/server/.env.local`):
-```env
-MEMORIES_AI_API_KEY=sk-xxxxx
-CONVEX_URL=https://your-deployment.convex.cloud
-CONVEX_DEPLOY_KEY=your-deploy-key
-PORT=3001
-CALLBACK_BASE_URL=http://localhost:3001
-```
-
-**Note:** For production, `CALLBACK_BASE_URL` must be a publicly accessible HTTPS URL.
+   **In Convex Dashboard** (Settings → Environment Variables):
+   ```env
+   MEMORIES_AI_API_KEY=sk-xxxxx
+   ```
 
 3. **Initialize Convex:**
+   ```bash
+   pnpm dev
+   ```
 
-```bash
-cd apps/convex
-pnpm dev
-```
+   Follow the prompts to:
+   - Create a new Convex project (or use existing)
+   - Add your Clerk issuer URL to environment variables
 
-Follow the prompts to:
-- Create a new Convex project (or use existing)
-- Add your Clerk issuer URL to environment variables
+4. **Start development:**
+   ```bash
+   pnpm dev
+   ```
 
-4. **Start development servers:**
-
-From the root directory:
-
-```bash
-pnpm dev
-```
-
-This starts:
-- Frontend: `http://localhost:5173` (Vite)
-- Backend: `http://localhost:3001` (Express)
-- Convex: Dev server (from `apps/convex`)
+   This starts:
+   - Frontend: `http://localhost:5173` (Vite)
+   - Convex: Dev server (automatic)
 
 ## Project Structure
 
 ```
 3PV/
-├── apps/
-│   ├── web/              # Vite PWA frontend
-│   │   ├── src/
-│   │   └── package.json
-│   ├── convex/           # Convex backend functions
-│   │   ├── schema.ts
-│   │   ├── streamEvents.ts
-│   │   └── package.json
-│   └── server/           # Express server
-│       ├── src/
-│       │   ├── routes/   # API routes
-│       │   └── services/ # Business logic
-│       └── package.json
-├── packages/
-│   └── shared/           # Shared types (future)
-├── turbo.json
-├── package.json
-└── pnpm-workspace.yaml
+├── convex/           # Convex backend (functions, HTTP actions, schema)
+│   ├── http.ts       # HTTP router for Memories AI callbacks
+│   ├── memoriesAI.ts # Actions to call Memories AI API
+│   ├── streamActions.ts # Combined stream management actions
+│   ├── streamTasks.ts   # Task management mutations/queries
+│   └── streamEvents.ts  # Event processing and gamification
+├── src/              # React frontend
+│   ├── components/   # UI components
+│   ├── hooks/        # React hooks
+│   └── main.tsx      # App entry point
+├── public/           # Static assets
+└── package.json
 ```
 
 ## Testing the Setup
 
-1. **Health check:**
-```bash
-curl http://localhost:3001/health
-```
+1. **Start your RTMP stream** from your phone to your RTMP server
 
-2. **Start a test stream:**
-```bash
-curl -X POST http://localhost:3001/api/stream/start \
-  -H "Content-Type: application/json" \
-  -d '{
-    "rtmpUrl": "rtmp://your-stream-url",
-    "systemPrompt": "You are a fitness coach.",
-    "userPrompt": "Count exercises and report progress."
-  }'
-```
+2. **In the 3PV app:**
+   - Enter RTMP URL: `rtmp://your-server/stream/livestream`
+   - Enter HLS URL: `http://localhost:8080/hls/livestream.m3u8` (for video display)
+   - Click "INITIATE LINK"
 
-## Next Steps
+3. **Check Convex logs** for callback processing
 
-1. Build the frontend UI for stream control
-2. Add real-time event display
-3. Implement gamification UI components
-4. Enhance AI coach personality
+## Architecture
 
+Everything runs on Convex:
+- **HTTP Actions**: Receive callbacks from Memories AI
+- **Actions**: Call external APIs (Memories AI)
+- **Mutations**: Store data in Convex database
+- **Queries**: Real-time data for UI
+
+No Express server needed! 🎉

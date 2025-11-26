@@ -8,7 +8,7 @@ A gamified life assistant powered by a drone with AI vision. The drone uses Memo
 
 ### Monorepo Structure (Turbo)
 - `apps/web` - Vite PWA frontend (React + Clerk + Tailwind v4)
-- `apps/convex` - Convex backend functions (shared by web and server)
+  - `apps/web/convex` - Convex backend functions
 - `apps/server` - Express server for Memories AI integration
 - `packages/shared` - Shared types and utilities (future)
 
@@ -105,7 +105,7 @@ A gamified life assistant powered by a drone with AI vision. The drone uses Memo
 │   └── context.md (this file)
 ├── apps/
 │   ├── web/          # Vite PWA frontend
-│   ├── convex/       # Convex backend functions
+│   │   └── convex/   # Convex backend functions
 │   └── server/       # Express server
 ├── packages/
 │   └── shared/       # Shared types/utils
