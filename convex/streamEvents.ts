@@ -218,6 +218,39 @@ export const getEventsByTask = query({
 });
 
 /**
+ * Query all recent stream events (regardless of task)
+ * Returns the most recent events - frontend will filter by timestamp
+ */
+export const getRecentEvents = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("streamEvents"),
+      _creationTime: v.number(),
+      taskId: v.string(),
+      text: v.string(),
+      timestamp: v.string(),
+      status: v.number(),
+      processed: v.boolean(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 200; // Get enough events for frontend to filter
+    
+    // Get all events ordered by creation time (newest first)
+    // Frontend will filter by the actual timestamp from Memories AI
+    const allEvents = await ctx.db
+      .query("streamEvents")
+      .order("desc")
+      .take(limit);
+    
+    return allEvents;
+  },
+});
+
+/**
  * Query game stats for a user
  */
 export const getGameStats = query({

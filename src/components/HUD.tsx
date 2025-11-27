@@ -52,26 +52,55 @@ interface MessageFeedProps {
 }
 
 export const MessageFeed: React.FC<MessageFeedProps> = ({ messages }) => {
-  return (
-    <div className="flex flex-col gap-2 max-h-48 overflow-y-auto scrollbar-hide mask-fade-bottom">
-      {messages.map((msg) => {
-        const timeStr = msg.timestamp
-          ? new Date(msg.timestamp).toLocaleTimeString([], { hour12: false })
-          : new Date().toLocaleTimeString([], { hour12: false });
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = Date.now();
+    const diffMs = now - timestamp;
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    // If less than 1 minute ago, show seconds
+    if (diffMins < 1) {
+      const diffSecs = Math.floor(diffMs / 1000);
+      return `${diffSecs}s ago`;
+    }
+    
+    // If less than 1 hour ago, show minutes
+    if (diffMins < 60) {
+      return `${diffMins}m ago`;
+    }
+    
+    // Otherwise show full time
+    return date.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
 
-        return (
-          <div
-            key={msg.id}
-            className={`text-sm px-3 py-1 border-l-2 ${msg.type === 'warning' ? 'border-hud-warning text-hud-warning' :
-                msg.type === 'success' ? 'border-hud-success text-hud-success' :
-                  'border-hud-primary text-hud-primary'
-              } bg-black/50 backdrop-blur-md animate-in slide-in-from-left-2 fade-in duration-300`}
-          >
-            <span className="hud-text text-xs opacity-70 mr-2">[{timeStr}]</span>
-            {msg.text}
-          </div>
-        );
-      })}
+  return (
+    <div className="flex flex-col gap-2 max-h-96 overflow-y-auto scrollbar-hide mask-fade-bottom">
+      {messages.length === 0 ? (
+        <div className="text-xs text-hud-primary/40 px-3 py-2 text-center">
+          No events in the last hour
+        </div>
+      ) : (
+        messages.map((msg) => {
+          const timeStr = msg.timestamp
+            ? formatTimestamp(msg.timestamp)
+            : 'now';
+
+          return (
+            <div
+              key={msg.id}
+              className={`text-sm px-3 py-2 border-l-2 ${msg.type === 'warning' ? 'border-hud-warning text-hud-warning' :
+                  msg.type === 'success' ? 'border-hud-success text-hud-success' :
+                    'border-hud-primary text-hud-primary'
+                } bg-black/50 backdrop-blur-md animate-in slide-in-from-left-2 fade-in duration-300`}
+            >
+              <div className="flex items-start gap-2">
+                <span className="hud-text text-xs opacity-80 font-mono whitespace-nowrap">[{timeStr}]</span>
+                <span className="flex-1">{msg.text}</span>
+              </div>
+            </div>
+          );
+        })
+      )}
     </div>
   );
 };

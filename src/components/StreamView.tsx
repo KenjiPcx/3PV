@@ -1,16 +1,24 @@
 import React, { useRef, useEffect, useState } from "react";
 import Hls from "hls.js";
+import { EventOverlay } from "./EventOverlay";
 
 interface StreamViewProps {
   children?: React.ReactNode;
   hlsUrl?: string;
   isStreaming?: boolean;
+  latestEvent?: {
+    id: string;
+    text: string;
+    type: 'success' | 'warning' | 'info';
+    timestamp: number;
+  } | null;
 }
 
 export const StreamView: React.FC<StreamViewProps> = ({
   children,
   hlsUrl,
-  isStreaming = false
+  isStreaming = false,
+  latestEvent = null
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -203,6 +211,9 @@ export const StreamView: React.FC<StreamViewProps> = ({
 
         {children}
       </div>
+
+      {/* Event Overlay */}
+      <EventOverlay event={latestEvent} />
 
       {/* Debug Panel */}
       <div className="absolute bottom-4 left-4 z-50">

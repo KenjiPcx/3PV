@@ -20,43 +20,70 @@ export function Dashboard() {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }, [activeTask]);
 
-  // Combine stream events and coach messages into a unified message feed
+  // Filter stream events to only show those from the last hour
   const messages = useMemo(() => {
-    const eventMessages = (streamEvents || []).map((event) => {
-      // Parse timestamp - it can be ISO string or number
-      let timestamp: number;
-      if (typeof event.timestamp === 'string') {
-        timestamp = new Date(event.timestamp).getTime();
-      } else {
-        timestamp = event.timestamp;
-      }
-      
-      return {
-        id: event._id,
-        text: event.text,
-        type: event.status === 0 ? 'success' as const : 'warning' as const,
-        timestamp: timestamp || Date.now(),
-      };
-    });
+    const now = Date.now();
+    const oneHourAgo = now - (60 * 60 * 1000); // 1 hour in milliseconds
 
-    const coachMsg = (coachMessages || []).map((msg) => ({
-      id: msg._id,
-      text: msg.message,
-      type: msg.type === 'motivational' || msg.type === 'celebration' 
-        ? 'success' as const 
-        : msg.type === 'warning' 
-        ? 'warning' as const 
-        : 'info' as const,
-      timestamp: msg.timestamp,
-    }));
+    console.log(`[Dashboard] Filtering events. Total events: ${streamEvents?.length || 0}, One hour ago: ${new Date(oneHourAgo).toISOString()}`);
 
-    // Combine and sort by timestamp (newest first)
-    const combined = [...eventMessages, ...coachMsg].sort((a, b) => 
-      (b.timestamp || 0) - (a.timestamp || 0)
-    );
+    const eventMessages = (streamEvents || [])
+      .map((event) => {
+        // Parse timestamp - prioritize event.timestamp (from Memories AI), fallback to _creationTime
+        let timestamp: number;
+        if (event.timestamp) {
+          if (typeof event.timestamp === 'string') {
+            const parsed = new Date(event.timestamp).getTime();
+            timestamp = isNaN(parsed) ? event._creationTime : parsed;
+          } else {
+            timestamp = event.timestamp;
+          }
+        } else {
+          timestamp = event._creationTime;
+        }
+        
+        // Ensure timestamp is valid
+        if (!timestamp || isNaN(timestamp)) {
+          timestamp = Date.now();
+        }
+        
+        // Format text - show status if no text
+        let text = event.text?.trim();
+        if (!text || text.length === 0) {
+          if (event.status === 0) {
+            text = '(analysis received)';
+          } else if (event.status === 14) {
+            text = '(stream ended)';
+          } else {
+            text = `(status: ${event.status})`;
+          }
+        }
+        
+        const eventTime = new Date(timestamp).toISOString();
+        const isWithinHour = timestamp >= oneHourAgo;
+        
+        console.log(`[Dashboard] Event ${event._id}: timestamp=${eventTime}, withinHour=${isWithinHour}, text="${text.substring(0, 50)}"`);
+        
+        return {
+          id: event._id,
+          text,
+          type: event.status === 0 ? 'success' as const : 'warning' as const,
+          timestamp,
+        };
+      })
+      .filter((event) => {
+        // Only include events from the last hour
+        const isWithinHour = event.timestamp >= oneHourAgo;
+        if (!isWithinHour) {
+          console.log(`[Dashboard] Filtered out event ${event.id}: timestamp ${new Date(event.timestamp).toISOString()} is before ${new Date(oneHourAgo).toISOString()}`);
+        }
+        return isWithinHour;
+      })
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); // Newest first
 
-    return combined.slice(0, 50); // Limit to 50 most recent
-  }, [streamEvents, coachMessages]);
+    console.log(`[Dashboard] Final filtered events: ${eventMessages.length}`);
+    return eventMessages;
+  }, [streamEvents]);
 
   // Stats from gameStats or defaults
   const hp = gameStats?.hp ?? 100;
@@ -103,6 +130,7 @@ export function Dashboard() {
           <StreamView 
             hlsUrl={hlsUrl || undefined} 
             isStreaming={isStreaming}
+            latestEvent={messages.length > 0 ? messages[0] : null}
           />
           
           {/* HUD Overlays */}

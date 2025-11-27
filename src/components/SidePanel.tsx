@@ -34,7 +34,7 @@ export function SidePanel({ isStreaming, onStartStream, onStopStream, onSetHlsUr
       
       <div className="flex-1 overflow-hidden flex flex-col p-4">
         <h3 className="text-xs font-hud text-hud-primary/50 mb-2 uppercase tracking-widest">
-          Communication Log
+          Stream Events (Last Hour)
         </h3>
         <MessageFeed messages={messages} />
       </div>

@@ -10,11 +10,16 @@ export function useStreamData() {
   const activeTasks = useQuery(api.streamTasks.getActiveTasks) || [];
   const activeTask = activeTasks[0]; // Use the first active task
 
-  // Get stream events for the active task
-  const streamEvents = useQuery(
-    api.streamEvents.getEventsByTask,
-    activeTask ? { taskId: activeTask.taskId, limit: 50 } : "skip"
-  ) || [];
+  // Get all recent events from the past hour (regardless of task)
+  const recentEvents = useQuery(api.streamEvents.getRecentEvents, {}) || [];
+
+  // Deduplicate by _id in case there's overlap
+  const eventMap = new Map();
+  recentEvents.forEach(event => {
+    eventMap.set(event._id, event);
+  });
+
+  const streamEvents = Array.from(eventMap.values());
 
   // Get game stats for the user
   const gameStats = useQuery(

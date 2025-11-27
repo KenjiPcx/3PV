@@ -47,74 +47,86 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onStartStream, onSto
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <label className="text-xs hud-text uppercase text-hud-primary/70">RTMP Stream URL (for AI analysis)</label>
-          <input
-            type="text"
-            value={rtmpUrl}
-            onChange={(e) => setRtmpUrl(e.target.value)}
-            placeholder="rtmp://..."
-            className="w-full bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none focus:shadow-[0_0_10px_rgba(0,240,255,0.2)] transition-all"
-            disabled={isStreaming}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs hud-text uppercase text-hud-primary/70">HLS Playback URL (for video display)</label>
-          <div className="flex gap-2">
+      {isStreaming ? (
+        // Collapsed view when streaming - just show abort button
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="py-3 px-6 font-bold uppercase tracking-wider transition-all duration-300 clip-path-button bg-hud-danger/20 border border-hud-danger text-hud-danger hover:bg-hud-danger hover:text-white"
+          >
+            ABORT MISSION
+          </button>
+        </form>
+      ) : (
+        // Full view when not streaming - show all inputs
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="space-y-1">
+            <label className="text-xs hud-text uppercase text-hud-primary/70">RTMP Stream URL (for AI analysis)</label>
             <input
               type="text"
-              value={hlsUrl}
-              onChange={(e) => handleHlsUrlChange(e.target.value)}
-              placeholder="http://localhost:8080/hls/livestream.m3u8"
-              className="flex-1 bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none focus:shadow-[0_0_10px_rgba(0,240,255,0.2)] transition-all"
+              value={rtmpUrl}
+              onChange={(e) => setRtmpUrl(e.target.value)}
+              placeholder="rtmp://..."
+              className="w-full bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none focus:shadow-[0_0_10px_rgba(0,240,255,0.2)] transition-all"
+              disabled={isStreaming}
             />
-            <button
-              type="button"
-              onClick={() => handleHlsUrlChange(hlsUrl)}
-              className="px-3 py-2 bg-hud-primary/20 border border-hud-primary text-hud-primary hover:bg-hud-primary hover:text-black transition-all text-xs uppercase"
-              title="View stream without AI analysis"
-            >
-              VIEW
-            </button>
           </div>
-        </div>
 
-        <div className="space-y-1">
-          <label className="text-xs hud-text uppercase text-hud-primary/70">AI Persona (System Prompt)</label>
-          <textarea
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            className="w-full bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none h-20 resize-none"
-            disabled={isStreaming}
-          />
-        </div>
+          <div className="space-y-1">
+            <label className="text-xs hud-text uppercase text-hud-primary/70">HLS Playback URL (for video display)</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={hlsUrl}
+                onChange={(e) => handleHlsUrlChange(e.target.value)}
+                placeholder="http://localhost:8080/hls/livestream.m3u8"
+                className="flex-1 bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none focus:shadow-[0_0_10px_rgba(0,240,255,0.2)] transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => handleHlsUrlChange(hlsUrl)}
+                className="px-3 py-2 bg-hud-primary/20 border border-hud-primary text-hud-primary hover:bg-hud-primary hover:text-black transition-all text-xs uppercase"
+                title="View stream without AI analysis"
+              >
+                VIEW
+              </button>
+            </div>
+          </div>
 
-        <div className="space-y-1">
-          <label className="text-xs hud-text uppercase text-hud-primary/70">Mission Objective (User Prompt)</label>
-          <textarea
-            value={userPrompt}
-            onChange={(e) => setUserPrompt(e.target.value)}
-            className="w-full bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none h-20 resize-none"
-            disabled={isStreaming}
-          />
-        </div>
+          <div className="space-y-1">
+            <label className="text-xs hud-text uppercase text-hud-primary/70">AI Persona (System Prompt)</label>
+            <textarea
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              className="w-full bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none h-20 resize-none"
+              disabled={isStreaming}
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`mt-2 py-3 px-6 font-bold uppercase tracking-wider transition-all duration-300 clip-path-button
-            ${isStreaming 
-              ? 'bg-hud-danger/20 border border-hud-danger text-hud-danger hover:bg-hud-danger hover:text-white' 
-              : isLoading
-              ? 'bg-yellow-500/20 border border-yellow-500 text-yellow-500 cursor-wait opacity-70'
-              : 'bg-hud-primary/20 border border-hud-primary text-hud-primary hover:bg-hud-primary hover:text-black'
-            }`}
-        >
-          {isLoading ? 'INITIALIZING...' : isStreaming ? 'ABORT MISSION' : 'INITIATE LINK'}
-        </button>
-      </form>
+          <div className="space-y-1">
+            <label className="text-xs hud-text uppercase text-hud-primary/70">Mission Objective (User Prompt)</label>
+            <textarea
+              value={userPrompt}
+              onChange={(e) => setUserPrompt(e.target.value)}
+              className="w-full bg-black/50 border border-hud-primary/30 p-2 text-sm text-white focus:border-hud-primary focus:outline-none h-20 resize-none"
+              disabled={isStreaming}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`mt-2 py-3 px-6 font-bold uppercase tracking-wider transition-all duration-300 clip-path-button
+              ${isLoading
+                ? 'bg-yellow-500/20 border border-yellow-500 text-yellow-500 cursor-wait opacity-70'
+                : 'bg-hud-primary/20 border border-hud-primary text-hud-primary hover:bg-hud-primary hover:text-black'
+              }`}
+          >
+            {isLoading ? 'INITIALIZING...' : 'INITIATE LINK'}
+          </button>
+        </form>
+      )}
     </div>
   );
 };
